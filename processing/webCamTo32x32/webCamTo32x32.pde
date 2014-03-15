@@ -87,23 +87,24 @@ void draw() {
       if (activateGrayscale) {
         float level = red(pix);
         if (level > bwTreshold) {
+          int c333 = convert24Colorto9(color(0));  
+          byte[] out = splitToBytes(c333);
+          writeOut(out);
           fill(255);
-          myPort.write(byte(0));
-          myPort.write(byte(0));
         } 
         else {
+          int c333 = convert24Colorto9(color(255));  
+          byte[] out = splitToBytes(c333);
+          writeOut(out);
           fill(0);
-          myPort.write(byte(0));
-          myPort.write(byte(7));
         }
       } 
       else { // full color
 
         int c333 = convert24Colorto9(pix);  
-        byte out1 = byte(c333 >> 6);
-        byte out2 = byte(c333 & 0x3F);
-        myPort.write(out2);
-        myPort.write(out1);
+        byte[] out = splitToBytes(c333);
+        writeOut(out);
+
         fill(pix);
       }
 
@@ -122,7 +123,7 @@ void draw() {
 }
 
 
-byte[] outputBytes(int c333) {
+byte[] splitToBytes(int c333) {
   byte out1 = byte(c333 >> 6); // red
   byte out2 = byte(c333 & 0x3F); // green, blue
   byte[] out = new byte[2];

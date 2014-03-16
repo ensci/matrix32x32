@@ -152,8 +152,8 @@ byte[] splitToBytes(int c333) {
   byte out1 = byte(c333 >> 6); // red
   byte out2 = byte(c333 & 0x3F); // green, blue
   byte[] out = new byte[2];
-  out[0] = out2; // red
-  out[1] = out1; // green, blue
+  out[0] = out2; // green, blue
+  out[1] = out1; // red
   return out;
 }
 

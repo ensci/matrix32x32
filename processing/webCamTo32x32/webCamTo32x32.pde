@@ -7,9 +7,14 @@ Serial myPort;  // The serial port
 
 Capture cam;
 
+boolean activateSerial = false;
 boolean activateCamera = true;
 boolean activateGrayscale = false;
+boolean activateVerbose = false;
 int bwTreshold = 100;
+
+boolean saveNow = false;
+String textOutput = "";
 
 int w = 32;
 int h = 32;
@@ -20,12 +25,12 @@ float stepH;
 void setup() {
   size(640, 640);
 
-  // List all the available serial ports
-  println(Serial.list());
-  // Open the port you are using at the rate you want:
-  myPort = new Serial(this, Serial.list()[2], 115200);
-  myPort.clear();
-
+  if (activateSerial) {
+    // List all the available serial ports
+    println(Serial.list());
+    // Open the port you are using at the rate you want:
+    myPort = new Serial(this, Serial.list()[2], 115200);
+  }
   stepW = float(width)/float(w);
   stepH = float(width)/float(h);
 
@@ -60,6 +65,8 @@ void setup() {
 }
 
 void draw() {
+
+  textOutput = "";
   if (activateCamera) {
     if (cam.available() == true) {
       cam.read();
@@ -112,12 +119,30 @@ void draw() {
       rect(x, y, stepW, stepH);
     }
   }
-  myPort.write(byte(255));
 
-  while (myPort.available () > 0) {
-    myString = myPort.readStringUntil(lf);
-    if (myString != null) {
-      println(myString);
+
+  if (activateSerial) 
+    myPort.write(byte(255));
+  else if (activateVerbose) println("255");
+  textOutput+="255\n";
+
+
+  if (saveNow) {
+    String[] s = new String[1];
+    s[0] = textOutput;
+    saveStrings("lastFrame.txt", s);
+    saveFrame("frame####.png");
+    saveNow = false;
+  }
+
+
+
+  if (activateSerial) {
+    while (myPort.available () > 0) {
+      myString = myPort.readStringUntil(lf);
+      if (myString != null) {
+        println(myString);
+      }
     }
   }
 }
@@ -133,8 +158,14 @@ byte[] splitToBytes(int c333) {
 }
 
 void writeOut(byte[] out) {
-  myPort.write(out[0]);
-  myPort.write(out[1]);
+  if (activateSerial) {
+    myPort.write(out[0]);
+    myPort.write(out[1]);
+  } 
+  else {
+    if (activateVerbose) println(int(out[0]) + " " + int(out[1]));
+  }
+  textOutput+=str(int(out[0])) + " " + str(int(out[1])) + "\n";
 }
 
 int convert24Colorto9(int c) {
@@ -148,5 +179,11 @@ int convert24Colorto9(int c) {
   g = green >> 5;
   b = blue >> 5;
   return (r << 6) | (g << 3) | (b);
+}
+
+void keyReleased() {
+  if (int(key) == 32) {
+    saveNow = true;
+  }
 }
 
